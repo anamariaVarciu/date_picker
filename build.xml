@@ -3,7 +3,7 @@
     name="test"
     default="help" >
 
-    <property filei="local.properties" />
+    <property file="local.properties" />
     <property file="ant.properties" />
     <property environment="env" />
 
