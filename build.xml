@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    name="test"
+    default="help" >
+
+    <property filei="local.properties" />
+    <property file="ant.properties" />
+    <property environment="env" />
+
+    <condition
+        property="sdk.dir"
+        value="C:\dev\android" >
+
+        <isset property="env.ANDROID_HOME" />
+    </condition>
+
+    <loadproperties srcFile="project.properties" />
+
+    <!-- quick check on sdk.dir -->
+
+    <fail
+        message="sdk.dir is missing. Make sure to generate local.properties using &apos;android update project&apos; or to inject it through the ANDROID_HOME environment variable."
+        unless="sdk.dir" />
+
+    <import
+        file="custom_rules.xml"
+        optional="true" />
+    
+    <import file="${sdk.dir}/tools/ant/build.xml" />
+
+    <target
+        name="init"
+        description="Initializing..." >
+
+        <tstamp />
+
+        <delete dir="bin" />
+        <delete dir="temp" />
+        <mkdir dir="bin" />
+        <mkdir dir="temp" />
+    </target>
+    
+    <target name="orange" depends="init">
+        <antcall target="instance">
+            <param name="instance_name" value="orange" />
+        </antcall>
+    </target>
+    
+    <target name="googleplay" depends="init">
+        <antcall target="instance">
+            <param name="instance_name" value="googleplay" />
+        </antcall>
+    </target>
+    
+    <target name="all" depends="googleplay, orange" />
+    
+    <target name="instance">
+        <antcall target="preserve" />
+        
+        <copy file="AndroidManifest_${instance_name}.xml" tofile="AndroidManifest.xml" />
+        <replaceregexp file="${config}" match="INSTANCE\s*=\s*&quot;\w*&quot;" replace="INSTANCE = &quot;${instance_name}&quot;" flags="g"/>
+        <antcall target="release" />
+    	<copy file="bin/test-release.apk" tofile="test_${instance_name}.apk" />
+    	
+    	<antcall target="clean" />
+    </target>
+    
+    <target name="preserve" description="Preserving AndroidManifest.xml and Config.java...">
+        <delete dir="${android.library.reference.1}/bin" />
+        <!-- making copies of the current AndroidManifest.xml and Config.java -->
+        <copy file="AndroidManifest.xml" tofile="temp/AndroidManifest.xml~" />
+        <copy file="${config}" tofile="temp/Config.java~" />
+    </target>
+    
+    <target name="clean" description="Cleaning up...">
+        <!-- restore AndroidManifest.xml and Config.java -->
+        <copy tofile="AndroidManifest.xml" file="temp/AndroidManifest.xml~" />
+        <copy tofile="${config}" file="temp/Config.java~" />
+        
+        <delete dir="bin" />
+        <delete dir="temp" />
+    </target>
+</project>
